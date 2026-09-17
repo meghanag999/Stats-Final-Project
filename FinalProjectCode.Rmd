@@ -1,0 +1,67 @@
+---
+title: "newtest"
+author: "Meghana Gopu"
+date: "2024-12-05"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# Load libraries
+library(ggplot2)
+library(car)      
+library(caret)     
+library(MASS)    
+library(knitr)    
+library(broom)     
+library(kableExtra) 
+
+data = read.csv("StudentPerformanceFactors.csv")
+#multiple linear regression 
+full_model = lm(Exam_Score ~ Hours_Studied + Sleep_Hours + Physical_Activity + 
+                  factor(Internet_Access) + Tutoring_Sessions + Attendance + 
+                   factor(Motivation_Level) + 
+                  factor(Parental_Involvement) + factor(Family_Income) + 
+                   factor(Parental_Education_Level) + 
+                  factor(Teacher_Quality) + factor(School_Type) + 
+                   factor(Peer_Influence) + factor(Distance_from_Home) + 
+                  factor(Gender) + factor(Learning_Disabilities)+
+                   factor(Extracurricular_Activities)+factor(Access_to_Resources),
+                data = data)
+
+# Tidy the results for cleaner output
+model_summary = tidy(full_model)
+kable(model_summary, caption = "Table 1 Regression Model Summary: Exam Score Predictors")
+
+#Variable Selection
+# Perform stepwise AIC 
+selected_model = stepAIC(full_model, direction = "both")
+
+# Summary of the selected model
+summary(selected_model)
+
+# Residual diagnostics
+par(mfrow = c(2, 2)) 
+plot(selected_model)
+
+# Check for multicollinearity using Variance Inflation Factor (VIF)
+vif(selected_model)
+
+
+
+# Residual vs Fitted Plot for final model
+ggplot(data = data.frame(Fitted = fitted(selected_model), Residuals = residuals(selected_model)), 
+       aes(x = Fitted, y = Residuals)) + 
+  geom_point(color = "blue", alpha = 0.6) + 
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed") + 
+  labs(title = " Table 2 Residuals vs Fitted Values", x = "Fitted Values", y = "Residuals") + 
+  theme_minimal()
+
+```
